@@ -626,7 +626,7 @@ class Client implements ImapInterface, SmtpInterface, Connectable
             return $this->imap->getConfig();
         }
 
-        throw new \RuntimeException('IMAP client does not support configuration retrieval');
+        throw new \RuntimeException('Cannot retrieve configuration: IMAP client does not implement Connectable interface');
     }
 
     /**

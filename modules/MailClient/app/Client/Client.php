@@ -13,6 +13,7 @@
 namespace Modules\MailClient\Client;
 
 use Illuminate\Support\Facades\Storage;
+use Modules\MailClient\Client\Contracts\Connectable;
 use Modules\MailClient\Client\Contracts\FolderInterface;
 use Modules\MailClient\Client\Contracts\ImapInterface;
 use Modules\MailClient\Client\Contracts\MessageInterface;
@@ -20,7 +21,7 @@ use Modules\MailClient\Client\Contracts\SmtpInterface;
 use Modules\MailClient\Client\Events\MessageSending;
 use Modules\MailClient\Client\Events\MessageSent;
 
-class Client implements ImapInterface, SmtpInterface
+class Client implements ImapInterface, SmtpInterface, Connectable
 {
     /**
      * The attachments from a storage disk.
@@ -570,6 +571,55 @@ class Client implements ImapInterface, SmtpInterface
     public function getSmtp()
     {
         return $this->smtp;
+    }
+
+    /**
+     * Connect to server
+     *
+     * @return mixed
+     */
+    public function connect()
+    {
+        $imapConnection = null;
+        $smtpConnection = null;
+
+        if ($this->imap instanceof Connectable) {
+            $imapConnection = $this->imap->connect();
+        }
+
+        if ($this->smtp instanceof Connectable) {
+            $smtpConnection = $this->smtp->connect();
+        }
+
+        return ['imap' => $imapConnection, 'smtp' => $smtpConnection];
+    }
+
+    /**
+     * Test the connection
+     *
+     * @return mixed
+     */
+    public function testConnection()
+    {
+        if ($this->imap instanceof Connectable) {
+            $this->imap->testConnection();
+        }
+
+        if ($this->smtp instanceof Connectable) {
+            $this->smtp->testConnection();
+        }
+    }
+
+    /**
+     * Get the connection config
+     */
+    public function getConfig(): Imap\Config
+    {
+        if ($this->imap instanceof Connectable) {
+            return $this->imap->getConfig();
+        }
+
+        throw new \RuntimeException('IMAP client does not support configuration retrieval');
     }
 
     /**

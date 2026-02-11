@@ -13,6 +13,7 @@
 namespace Modules\MailClient\Client;
 
 use Illuminate\Support\Facades\Storage;
+use Modules\MailClient\Client\Contracts\Connectable;
 use Modules\MailClient\Client\Contracts\FolderInterface;
 use Modules\MailClient\Client\Contracts\ImapInterface;
 use Modules\MailClient\Client\Contracts\MessageInterface;
@@ -20,7 +21,7 @@ use Modules\MailClient\Client\Contracts\SmtpInterface;
 use Modules\MailClient\Client\Events\MessageSending;
 use Modules\MailClient\Client\Events\MessageSent;
 
-class Client implements ImapInterface, SmtpInterface
+class Client implements ImapInterface, SmtpInterface, Connectable
 {
     /**
      * The attachments from a storage disk.
@@ -570,6 +571,62 @@ class Client implements ImapInterface, SmtpInterface
     public function getSmtp()
     {
         return $this->smtp;
+    }
+
+    /**
+     * Connect to server
+     *
+     * Establishes connections to both IMAP and SMTP servers.
+     *
+     * @return array{imap: mixed, smtp: mixed} An array containing the connection objects for both IMAP and SMTP
+     */
+    public function connect(): array
+    {
+        $imapConnection = null;
+        $smtpConnection = null;
+
+        if ($this->imap instanceof Connectable) {
+            $imapConnection = $this->imap->connect();
+        }
+
+        if ($this->smtp instanceof Connectable) {
+            $smtpConnection = $this->smtp->connect();
+        }
+
+        return ['imap' => $imapConnection, 'smtp' => $smtpConnection];
+    }
+
+    /**
+     * Test the connection
+     *
+     * Tests both IMAP and SMTP connections. This method will throw an exception
+     * if either connection fails, making it suitable for connection validation.
+     *
+     * @return void
+     *
+     * @throws \Modules\MailClient\Client\Exceptions\ConnectionErrorException If either IMAP or SMTP connection fails
+     */
+    public function testConnection(): void
+    {
+        if ($this->imap instanceof Connectable) {
+            $this->imap->testConnection();
+        }
+
+        if ($this->smtp instanceof Connectable) {
+            $this->smtp->testConnection();
+        }
+    }
+
+    /**
+     * Get the connection config
+     */
+    public function getConfig(): Imap\Config
+    {
+        if ($this->imap instanceof Connectable) {
+            return $this->imap->getConfig();
+        }
+
+        throw new \RuntimeException('Cannot retrieve configuration: IMAP client does not implement Connectable interface');
     }
 
     /**

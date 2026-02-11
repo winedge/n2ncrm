@@ -576,9 +576,11 @@ class Client implements ImapInterface, SmtpInterface, Connectable
     /**
      * Connect to server
      *
-     * @return mixed
+     * Establishes connections to both IMAP and SMTP servers.
+     *
+     * @return array{imap: mixed, smtp: mixed} An array containing the connection objects for both IMAP and SMTP
      */
-    public function connect()
+    public function connect(): array
     {
         $imapConnection = null;
         $smtpConnection = null;
@@ -597,9 +599,14 @@ class Client implements ImapInterface, SmtpInterface, Connectable
     /**
      * Test the connection
      *
-     * @return mixed
+     * Tests both IMAP and SMTP connections. This method will throw an exception
+     * if either connection fails, making it suitable for connection validation.
+     *
+     * @return void
+     *
+     * @throws \Modules\MailClient\Client\Exceptions\ConnectionErrorException If either IMAP or SMTP connection fails
      */
-    public function testConnection()
+    public function testConnection(): void
     {
         if ($this->imap instanceof Connectable) {
             $this->imap->testConnection();

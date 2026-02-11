@@ -22,9 +22,15 @@ use Tests\TestCase;
 
 class ClientConnectableTest extends TestCase
 {
-    public function test_client_implements_connectable_interface(): void
+    private Client $client;
+
+    private Config $imapConfig;
+
+    protected function setUp(): void
     {
-        $imapConfig = new Config(
+        parent::setUp();
+
+        $this->imapConfig = new Config(
             'imap.example.com',
             993,
             'ssl',
@@ -44,97 +50,28 @@ class ClientConnectableTest extends TestCase
             'password'
         );
 
-        $imapClient = new ImapClient($imapConfig);
+        $imapClient = new ImapClient($this->imapConfig);
         $smtpClient = new SmtpClient($smtpConfig);
-        $client = new Client($imapClient, $smtpClient);
+        $this->client = new Client($imapClient, $smtpClient);
+    }
 
-        $this->assertInstanceOf(Connectable::class, $client);
+    public function test_client_implements_connectable_interface(): void
+    {
+        $this->assertInstanceOf(Connectable::class, $this->client);
     }
 
     public function test_client_has_connect_method(): void
     {
-        $imapConfig = new Config(
-            'imap.example.com',
-            993,
-            'ssl',
-            'test@example.com',
-            false,
-            'test@example.com',
-            'password'
-        );
-
-        $smtpConfig = new SmtpConfig(
-            'smtp.example.com',
-            465,
-            'ssl',
-            'test@example.com',
-            false,
-            'test@example.com',
-            'password'
-        );
-
-        $imapClient = new ImapClient($imapConfig);
-        $smtpClient = new SmtpClient($smtpConfig);
-        $client = new Client($imapClient, $smtpClient);
-
-        $this->assertTrue(method_exists($client, 'connect'));
+        $this->assertTrue(method_exists($this->client, 'connect'));
     }
 
     public function test_client_has_test_connection_method(): void
     {
-        $imapConfig = new Config(
-            'imap.example.com',
-            993,
-            'ssl',
-            'test@example.com',
-            false,
-            'test@example.com',
-            'password'
-        );
-
-        $smtpConfig = new SmtpConfig(
-            'smtp.example.com',
-            465,
-            'ssl',
-            'test@example.com',
-            false,
-            'test@example.com',
-            'password'
-        );
-
-        $imapClient = new ImapClient($imapConfig);
-        $smtpClient = new SmtpClient($smtpConfig);
-        $client = new Client($imapClient, $smtpClient);
-
-        $this->assertTrue(method_exists($client, 'testConnection'));
+        $this->assertTrue(method_exists($this->client, 'testConnection'));
     }
 
     public function test_client_get_config_returns_imap_config(): void
     {
-        $imapConfig = new Config(
-            'imap.example.com',
-            993,
-            'ssl',
-            'test@example.com',
-            false,
-            'test@example.com',
-            'password'
-        );
-
-        $smtpConfig = new SmtpConfig(
-            'smtp.example.com',
-            465,
-            'ssl',
-            'test@example.com',
-            false,
-            'test@example.com',
-            'password'
-        );
-
-        $imapClient = new ImapClient($imapConfig);
-        $smtpClient = new SmtpClient($smtpConfig);
-        $client = new Client($imapClient, $smtpClient);
-
-        $this->assertSame($imapConfig, $client->getConfig());
+        $this->assertSame($this->imapConfig, $this->client->getConfig());
     }
 }
